@@ -1,0 +1,37 @@
+package com.hvfw.moonvocab.moonreader
+
+import android.content.Context
+import android.os.FileObserver
+import android.util.Log
+import androidx.lifecycle.ViewModelProvider
+import com.hvfw.moonvocab.data.VocabViewModel
+
+class MoonReaderManager(private val context: Context) {
+    private val viewModel: VocabViewModel by lazy {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(context.applicationContext)
+            .create(VocabViewModel::class.java)
+    }
+
+    // Überwache den Moon+ Highlight-Ordner
+    fun startMonitoring() {
+        val observer = object : FileObserver("/sdcard/Books/MoonReader/Highlights", CLOSE_WRITE) {
+            override fun onEvent(event: Int, path: String?) {
+                if (path?.endsWith(".txt") == true) {
+                    val content = File("/sdcard/Books/MoonReader/Highlights/$path").readText()
+                    parseAndSave(content)
+                }
+            }
+        }
+        observer.startWatching()
+        Log.d("MoonReader", "Ordnerüberwachung gestartet")
+    }
+
+    // Extrahiere Wort und Kontext aus dem Highlight
+    private fun parseAndSave(text: String) {
+        val regex = """Highlight on Page \d+ \| (.+)\n(.+)""".toRegex()
+        val match = regex.find(text) ?: return
+        val (context, word) = match.destructured
+        viewModel.saveVocab(word, context)
+        Log.i("MoonReader", "Gespeichert: $word → $context")
+    }
+}
