@@ -1,0 +1,42 @@
+package com.hvfw.moonvocab.translation
+
+import android.content.Context
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+
+class TranslationService(private val context: Context) {
+    private val client = OkHttpClient()
+
+    // Übersetze ein Wort (Priorität: Offline → Online)
+    suspend fun translate(word: String): String {
+        return translateOffline(word) ?: translateOnline(word)
+    }
+
+    // Offline-Übersetzung mit StarDict
+    private fun translateOffline(word: String): String? {
+        // Implementierung folgt nach Hinzufügen der StarDict-Dateien
+        return null
+    }
+
+    // Online-Übersetzung mit LibreTranslate
+    private suspend fun translateOnline(word: String): String {
+        val request = Request.Builder()
+            .url("https://libretranslate.com/translate")
+            .post(
+                FormBody.Builder()
+                    .add("q", word)
+                    .add("source", "en")
+                    .add("target", "de")
+                    .build()
+            )
+            .build()
+
+        return try {
+            val response = client.newCall(request).execute()
+            JSONObject(response.body?.string() ?: "").getString("translatedText")
+        } catch (e: Exception) {
+            "Übersetzung fehlgeschlagen"
+        }
+    }
+}
