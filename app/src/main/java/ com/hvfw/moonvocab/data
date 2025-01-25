@@ -1,0 +1,14 @@
+package com.hvfw.moonvocab.data
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import java.time.LocalDate
+
+@Entity(tableName = "vocab")
+data class VocabEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val word: String,
+    val translation: String,
+    val context: String,
+    val nextReview: LocalDate = LocalDate.now()
+)
